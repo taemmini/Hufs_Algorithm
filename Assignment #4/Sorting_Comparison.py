@@ -1,5 +1,6 @@
 import random, timeit
 
+
 # 기본적인 퀵소트
 def quick_sort(A, left, right):
     global Qc, Qs
@@ -40,6 +41,7 @@ def hybrid_quick_sort(arr, low, high):
             hybrid_quick_sort(arr, pivot_index + 1, high)
 
 
+# 이때, partition 함수는 기본적인 퀵소트의 방식을 활용한다.
 def partition(arr, low, high):
     global Q1c, Q1s
 
@@ -65,6 +67,7 @@ def partition(arr, low, high):
     return j
 
 
+# insertion sort는 기본적인 insertion sort의 방식을 활용한다.
 def insertion_sort(arr, low, high):
     global Q1c, Q1s
 
@@ -87,6 +90,60 @@ def insertion_sort(arr, low, high):
 # 적당한 K개가 남을 떄까지만 분할한 후, 따로 insertion sort를 활용하여 정렬하지 않는다면, 전체 값이 완전히 정리되지는 않는다.
 # 하지만 대부분 정렬이 된 상태가 된다. 따라서, 이를 활용하여 insertion sort를 활용하여 정렬한다.
 # 사실상 추가점수 1과 같은 방식이다.
+def hybrid_quick_sort_2(arr, low, high, K):
+    global Q2c, Q2s
+
+    if low < high:
+        if high - low + 1 <= K:
+            insertion_sort_2(arr, low, high)
+        else:
+            pivot_index = partition_2(arr, low, high)
+            hybrid_quick_sort(arr, low, pivot_index - 1)
+            hybrid_quick_sort(arr, pivot_index + 1, high)
+
+
+def partition_2(arr, low, high):
+    global Q2c, Q2s
+
+    pivot = arr[low]
+    i = low + 1
+    j = high
+
+    while True:
+        while i <= j and arr[i] <= pivot:
+            Q2c += 1
+            i += 1
+        while i <= j and arr[j] >= pivot:
+            Q2c += 1
+            j -= 1
+        if i <= j:
+            arr[i], arr[j] = arr[j], arr[i]
+            Q2s += 1
+        else:
+            break
+
+    arr[low], arr[j] = arr[j], arr[low]
+    Q2s += 1
+    return j
+
+
+# insertion sort는 기본적인 insertion sort의 방식을 활용한다.
+def insertion_sort_2(arr, low, high):
+    global Q2c, Q2s
+
+    for i in range(low + 1, high + 1):
+        key = arr[i]
+        j = i - 1
+        while j >= low:
+            Q2c += 1
+            if arr[j] > key:
+                arr[j + 1] = arr[j]
+                Q2s += 1
+                j -= 1
+            else:
+                break
+        arr[j + 1] = key
+        Q2s += 1
 
 
 # 기본적인 Merge Sort
@@ -119,6 +176,8 @@ def merge_sort(A, left, right):
 
 # 추가점수 3
 # 3등분하여 재귀적으로 정렬한 후 merge한다.
+# 이때, 3등분한 부분들을 재귀적으로 정렬하기 위해 3등분한 부분들을 각각의 배열로 만들어 정렬한다.
+# 이후, 3등분한 부분들을 merge한다.
 def three_way_merge_sort(A, left, right):
     global M1c, M1s
     if left >= right: return
@@ -184,6 +243,7 @@ def three_way_merge_sort(A, left, right):
 
 
 # 기본적인 Heap Sort
+# Heapify 모듈이나 Class를 사용하지 않고 구현하였다.
 def heap_sort(A):
     global Hc, Hs
     n = len(A)
@@ -208,6 +268,7 @@ def heap_sort(A):
             A[j], A[k] = A[k], A[j]
             j = k
 
+
 # 아래 코드는 바꾸지 말 것!
 # 직접 실행해보면, 어떤 값이 출력되는지 알 수 있음
 
@@ -219,9 +280,10 @@ def check_sorted(A):
 
 
 #
-# Qc는 quick sort에서 리스트의 두 수를 비교한 횟수 저장
-# Qs는 quick sort에서 두 수를 교환(swap)한 횟수 저장
+# Qc, Qs는 quick sort에서 비교, 교환(또는 이동) 횟수 저장
+# Q1c, Q1s는 hybrid quick sort에서 비교, 교환(또는 이동) 횟수 저장
 # Mc, Ms는 merge sort에서 비교, 교환(또는 이동) 횟수 저장
+# M1c, M1s는 three-way merge sort에서 비교, 교환(또는 이동) 횟수 저장
 # Hc, Hs는 heap sort에서 비교, 교환(또는 이동) 횟수 저장
 #
 Qc, Qs, Q1c, Q1s, Q2c, Q2s, Mc, Ms, M1c, M1s, Hc, Hs = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -229,6 +291,7 @@ Qc, Qs, Q1c, Q1s, Q2c, Q2s, Mc, Ms, M1c, M1s, Hc, Hs = 0, 0, 0, 0, 0, 0, 0, 0, 0
 n = int(input())
 random.seed()
 A = []
+K = random.randint(10, 40)
 for i in range(n):
     A.append(random.randint(-1000, 1000))
 B = A[:]
@@ -243,9 +306,13 @@ print("Quick sort:")
 print("time =", timeit.timeit("quick_sort(A, 0, n-1)", globals=globals(), number=1))
 print("  comparisons = {:10d}, swaps = {:10d}\n".format(Qc, Qs))
 
-print("Hybrid quick sort:")
+print("Hybrid quick sort 1:")
 print("time =", timeit.timeit("hybrid_quick_sort(B, 0, n-1)", globals=globals(), number=1))
 print("  comparisons = {:10d}, swaps = {:10d}\n".format(Q1c, Q1s))
+
+print("Hybrid quick sort 2: ")
+print("time =", timeit.timeit("hybrid_quick_sort_2(C, 0, n-1, K)", globals=globals(), number=1))
+print("  comparisons = {:10d}, swaps = {:10d}\n".format(Q2c, Q2s))
 
 print("Merge sort:")
 print("time =", timeit.timeit("merge_sort(D, 0, n-1)", globals=globals(), number=1))
@@ -259,6 +326,8 @@ print("Heap sort:")
 print("time =", timeit.timeit("heap_sort(F)", globals=globals(), number=1))
 print("  comparisons = {:10d}, swaps = {:10d}\n".format(Hc, Hs))
 
+# Tim sort의 경우, 파이썬 내장 함수이므로 직접 구현할 필요가 없다.
+# 따라서, 비교 횟수와 교환(또는 이동) 횟수를 직접 count할 수 없기에, 비교 횟수와 교환(또는 이동) 횟수를 count하는 코드를 작성하지 않았다.
 print("Tim sort:")
 print("time =", timeit.timeit("G.sort()", globals=globals(), number=1))
 
